@@ -1,8 +1,11 @@
 <?php
 
+use App\Http\Controllers\FacilityController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
+
+Route::resource('facilities', FacilityController::class);
 Route::get('/', function () {
     return Inertia::render('Welcome');
 })->name('home');

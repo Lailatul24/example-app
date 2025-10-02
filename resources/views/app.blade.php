@@ -44,5 +44,9 @@
     </head>
     <body class="font-sans antialiased">
         @inertia
+         <div class="container">
+        <h1>Selamat Datang di Aplikasi SARPRAS</h1>
+        @yield('content')
+    </div>
     </body>
 </html>
