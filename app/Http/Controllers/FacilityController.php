@@ -58,7 +58,9 @@ class FacilityController extends Controller
      */
     public function edit(string $id)
     {
-        //
+        $categories = Category::all();
+        $locations = Location::all();
+        return view('facilities.edit', compact('facility', 'categories', 'locations'));
     }
 
     /**
