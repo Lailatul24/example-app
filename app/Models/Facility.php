@@ -20,4 +20,9 @@ class Facility extends Model
     {
         return $this->belongsTo(Location::class);
     }
+
+    public function loans()
+    {
+        return $this->hasMany(Loan::class);
+    }
 }
