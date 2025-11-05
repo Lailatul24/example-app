@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Category;
 use App\Models\Facility;
 use Illuminate\Http\Request;
 
@@ -30,8 +31,6 @@ class FacilityController extends Controller
         $validated = $request->validate([
             'code' => 'required|unique:facilities,code',
             'name' => 'required|string|max:255',
-            'category_id' => 'nullable|exists:categories,id',
-            'location_id' => 'nullable|exists:locations,id',
             'quantity_total' => 'required|integer|min:0',
             'quantity_available' => 'integer|min:0',
             'condition' => 'in:baik,rusak_ringan,rusak_berat',
@@ -40,12 +39,16 @@ class FacilityController extends Controller
 
         $facility = Facility::create($validated);
 
+        $categories = Category::all();
+
+        // Hubungkan fasilitas ke semua kategori
+        $facility->categories()->attach($categories->pluck('id'));
+
         return response()->json([
             'status' => 'success',
-            'message' => 'Fasilitas berhasil ditambahkan.',
-            'data' => $facility,
+            'message' => 'Barang inventaris berhasil ditambahkan ke semua kategori.',
+            'data' => $facility->load('categories'),
         ], 201);
-
     }
 
     /**

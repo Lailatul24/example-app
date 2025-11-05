@@ -25,4 +25,10 @@ class Facility extends Model
     {
         return $this->hasMany(Loan::class);
     }
+
+    public function categories()
+    {
+        return $this->belongsToMany(Category::class, 'category_facility');
+    }
+
 }

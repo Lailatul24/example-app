@@ -16,10 +16,6 @@ return new class extends Migration
             $table->string('code')->unique();
             $table->string('name');
 
-            // Relasi FK
-            $table->foreignId('category_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('location_id')->constrained()->cascadeOnDelete();
-
             $table->integer('quantity_total')->default(0);
             $table->integer('quantity_available')->default(0);
             $table->enum('condition', ['baik','rusak_ringan','rusak_berat'])->default('baik');
