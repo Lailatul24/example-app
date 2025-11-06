@@ -77,4 +77,27 @@ class FacilityController extends Controller
     {
         //
     }
+
+    public function byCategory($categoryName)
+    {
+        // Cari kategori berdasarkan nama (case-insensitive)
+        $category = \App\Models\Category::whereRaw('LOWER(name) = ?', [strtolower($categoryName)])->first();
+
+        if (!$category) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Kategori tidak ditemukan.'
+            ], 404);
+        }
+
+        // Ambil semua fasilitas yang termasuk ke kategori ini
+        $facilities = $category->facilities()->with('categories')->get();
+
+        return response()->json([
+            'status' => 'success',
+            'category' => $category->name,
+            'data' => $facilities,
+        ]);
+    }
+
 }

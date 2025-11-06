@@ -2,14 +2,28 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Facility extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
-        'code','name','category_id','location_id',
-        'quantity_total','quantity_available','condition','description'
+        'code','name','quantity_total','quantity_available','condition','description'
     ];
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::creating(function ($facility) {
+            // Generate kode otomatis, contoh: INV-2025-001
+            $latest = static::latest('id')->first();
+            $nextId = $latest ? $latest->id + 1 : 1;
+            $facility->code = 'INV-' . date('Y') . '-' . str_pad($nextId, 3, '0', STR_PAD_LEFT);
+        });
+    }
 
     public function category()
     {

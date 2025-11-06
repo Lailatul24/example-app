@@ -10,5 +10,7 @@ Route::get('/ping', function () {
 });
 
 Route::apiResource('facilities', FacilityController::class);
+Route::get('inventaris/{categoryName}', [FacilityController::class, 'byCategory']);
+
 Route::apiResource('loans', LoanController::class);
 Route::apiResource('categories', CategoryController::class);

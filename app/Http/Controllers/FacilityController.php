@@ -6,6 +6,7 @@ use App\Models\Category;
 use App\Models\Facility;
 use App\Models\Location;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 
 class FacilityController extends Controller
 {
@@ -14,8 +15,12 @@ class FacilityController extends Controller
      */
     public function index()
     {
-        $facilities = Facility::with(['category','location'])->get();
-        return view('facilities.index', compact('facilities'));
+        $facilities = Facility::all();
+
+        return Inertia::render('Facilities/Index', [
+            'facilities' => $facilities,
+            'flash' => session('success'),
+        ]);
     }
 
     /**
@@ -23,9 +28,7 @@ class FacilityController extends Controller
      */
     public function create()
     {
-        $categories = Category::all();
-        $locations  = Location::all();
-        return view('facilities.create', compact('categories','locations'));
+         return Inertia::render('Facilities/Create');
     }
 
     /**
@@ -33,24 +36,17 @@ class FacilityController extends Controller
      */
     public function store(Request $request)
     {
-        $request->validate([
-            'code' => 'required|unique:facilities',
-            'name' => 'required',
-            'category_id' => 'required|exists:categories,id',
-            'location_id' => 'required|exists:locations,id',
+        $data = $request->validate([
+            'name' => 'required|string|max:255',
+            'quantity_total' => 'required|integer|min:0',
+            'quantity_available' => 'integer|min:0',
+            'condition' => 'in:baik,rusak_ringan,rusak_berat',
+            'description' => 'nullable|string',
         ]);
 
-        Facility::create($request->all());
+        Facility::create($data);
 
-        return redirect()->route('facilities.index')->with('success', 'Fasilitas berhasil ditambahkan!');
-    }
-
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
+         return redirect()->back()->with('success', 'Fasilitas berhasil ditambahkan!');
     }
 
     /**
@@ -58,9 +54,9 @@ class FacilityController extends Controller
      */
     public function edit(string $id)
     {
-        $categories = Category::all();
-        $locations = Location::all();
-        return view('facilities.edit', compact('facility', 'categories', 'locations'));
+        return Inertia::render('Facilities/Edit', [
+            'facilities' => $id
+        ]);
     }
 
     /**
@@ -68,14 +64,26 @@ class FacilityController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $data = $request->validate([
+            'name' => 'required|string|max:255',
+            'quantity_total' => 'required|integer|min:0',
+            'quantity_available' => 'integer|min:0',
+            'condition' => 'in:baik,rusak_ringan,rusak_berat',
+            'description' => 'nullable|string',
+        ]);
+
+        Facility::create($data);
+
+        return redirect()->back()->with('success', 'Fasilitas berhasil diperbarui!');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(string $id)
+    public function destroy(Facility $facility)
     {
-        //
+        $facility->delete();
+
+        return redirect()->back()->with('success', 'Fasilitas berhasil dihapus!');
     }
 }
