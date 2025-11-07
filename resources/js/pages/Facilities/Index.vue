@@ -3,7 +3,7 @@ import { ref, watch } from 'vue'
 import { useForm, usePage, router } from '@inertiajs/vue3'
 import AppLayout from '@/Layouts/AppLayout.vue'
 
-const props = defineProps<{ facilities: any[] }>()
+const props = defineProps<{ facilities: any[], categories: any[] }>()
 
 const showModal = ref(false)
 const editMode = ref(false)
@@ -23,6 +23,7 @@ const form = useForm({
   id: null,
   code: '',
   name: '',
+  category_ids: [],
   quantity_total: '',
   quantity_available: '',
   condition: '',
@@ -177,10 +178,31 @@ function deleteFacility(id: number) {
             </div>
 
             <div>
+                <label class="block text-sm text-black font-medium">Kategori</label>
+                <select
+                    v-model="form.category_ids"
+                    multiple
+                    class="w-full border rounded p-2"
+                >
+                    <option
+                    v-for="category in props.categories"
+                    :key="category.id"
+                    :value="category.id"
+                    >
+                    {{ category.name }}
+                    </option>
+                </select>
+                <p v-if="form.errors.category_ids" class="text-red-500 text-sm mt-1">
+                    {{ form.errors.category_ids }}
+                </p>
+            </div>
+
+            <div>
               <label class="block text-sm font-medium">Qty Total</label>
               <input
                 v-model="form.quantity_total"
                 type="number"
+                placeholder="0"
                 class="w-full border rounded p-2"
                 :class="form.errors.quantity_total ? 'border-red-500' : 'border-gray-300'"
               />
@@ -195,6 +217,7 @@ function deleteFacility(id: number) {
                 v-model="form.quantity_available"
                 type="number"
                 class="w-full border rounded p-2"
+                placeholder="0"
                 :class="form.errors.quantity_available ? 'border-red-500' : 'border-gray-300'"
               />
               <p v-if="form.errors.quantity_available" class="text-red-500 text-sm mt-1">
@@ -204,12 +227,37 @@ function deleteFacility(id: number) {
 
             <div>
               <label class="block text-sm font-medium">Kondisi</label>
-              <input
-                v-model="form.condition"
-                type="text"
-                class="w-full border rounded p-2"
-                :class="form.errors.condition ? 'border-red-500' : 'border-gray-300'"
-              />
+              <div class="flex gap-4">
+                <label class="flex items-center space-x-2 cursor-pointer">
+                <input
+                    type="radio"
+                    value="baik"
+                    v-model="form.condition"
+                    class="text-blue-600 focus:ring-blue-500"
+                />
+                <span>Baik</span>
+                </label>
+
+                <label class="flex items-center space-x-2 cursor-pointer">
+                <input
+                    type="radio"
+                    value="rusak_ringan"
+                    v-model="form.condition"
+                    class="text-yellow-500 focus:ring-yellow-400"
+                />
+                <span>Rusak Ringan</span>
+                </label>
+
+                <label class="flex items-center space-x-2 cursor-pointer">
+                <input
+                    type="radio"
+                    value="rusak_berat"
+                    v-model="form.condition"
+                    class="text-red-600 focus:ring-red-500"
+                />
+                <span>Rusak Berat</span>
+                </label>
+              </div>
               <p v-if="form.errors.condition" class="text-red-500 text-sm mt-1">
                 {{ form.errors.condition }}
               </p>

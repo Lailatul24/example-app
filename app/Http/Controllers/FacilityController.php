@@ -15,10 +15,13 @@ class FacilityController extends Controller
      */
     public function index()
     {
-        $facilities = Facility::all();
+        // $facilities = Facility::all();
 
         return Inertia::render('Facilities/Index', [
-            'facilities' => $facilities,
+           'facilities' => Facility::with('categories')->latest()->get(),
+
+            // ambil semua kategori untuk dropdown
+            'categories' => Category::orderBy('name')->get(),
             'flash' => session('success'),
         ]);
     }
@@ -38,15 +41,20 @@ class FacilityController extends Controller
     {
         $data = $request->validate([
             'name' => 'required|string|max:255',
+            'category_ids' => 'required|array',
+            'category_ids.*' => 'exists:categories,id',
             'quantity_total' => 'required|integer|min:0',
             'quantity_available' => 'integer|min:0',
             'condition' => 'in:baik,rusak_ringan,rusak_berat',
             'description' => 'nullable|string',
         ]);
 
-        Facility::create($data);
+        $facility = Facility::create($data);
 
-         return redirect()->back()->with('success', 'Fasilitas berhasil ditambahkan!');
+        // Simpan relasi ke pivot table
+        $facility->categories()->sync($data['category_ids']);
+
+        return redirect()->back()->with('success', 'Fasilitas berhasil ditambahkan!');
     }
 
     /**
@@ -62,17 +70,20 @@ class FacilityController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(Request $request, Facility $facility)
     {
         $data = $request->validate([
             'name' => 'required|string|max:255',
+            'category_ids' => 'required|array',
+            'category_ids.*' => 'exists:categories,id',
             'quantity_total' => 'required|integer|min:0',
             'quantity_available' => 'integer|min:0',
             'condition' => 'in:baik,rusak_ringan,rusak_berat',
             'description' => 'nullable|string',
         ]);
 
-        Facility::create($data);
+        $facility->update($data);
+        $facility->categories()->sync($data['category_ids']);
 
         return redirect()->back()->with('success', 'Fasilitas berhasil diperbarui!');
     }

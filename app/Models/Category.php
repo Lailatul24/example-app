@@ -10,6 +10,6 @@ class Category extends Model
 
     public function facilities()
     {
-        return $this->hasMany(Facility::class);
+        return $this->belongsToMany(Facility::class, 'category_facility');
     }
 }
