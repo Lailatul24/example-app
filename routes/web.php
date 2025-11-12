@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\BorrowingController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\FacilityController;
 use Illuminate\Support\Facades\Route;
@@ -14,6 +15,9 @@ Route::delete('/facilities/{facility}', [FacilityController::class, 'destroy'])-
 
 Route::resource('categories', CategoryController::class);
 Route::get('/categories', [CategoryController::class, 'index'])->name('categories.index');
+
+Route::resource('borrowings', BorrowingController::class)->only(['index','store','update']);
+
 
 // Route::prefix('facilities')->group(function () {
 //     Route::get('/', fn () => Inertia::render('Facilities/Index'))->name('facilities.index');

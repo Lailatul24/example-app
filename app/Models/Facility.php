@@ -45,4 +45,11 @@ class Facility extends Model
         return $this->belongsToMany(Category::class, 'category_facility');
     }
 
+    public function borrowings()
+    {
+        return $this->belongsToMany(Borrowing::class, 'borrowing_facility')
+            ->withPivot('quantity')
+            ->withTimestamps();
+    }
+
 }
