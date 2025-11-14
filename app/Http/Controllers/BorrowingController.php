@@ -4,18 +4,40 @@ namespace App\Http\Controllers;
 
 use App\Models\Borrowing;
 use App\Models\Facility;
+use App\Models\Loan;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class BorrowingController extends Controller
 {
     public function index()
     {
-        $borrowings = Borrowing::with('facilities')->latest()->get();
-        $facilities = Facility::all();
+        $loans = \App\Models\Loan::with(['items.facility'])
+        ->orderByDesc('borrowed_at')
+        ->get()
+        ->map(function ($loan) {
+            return [
+                'id' => $loan->id,
+                'borrower_name' => $loan->borrower_name,
+                'borrowed_at' => $loan->borrowed_at,
+                'status' => $loan->status,
+                'returned_at' => optional($loan->returned_at)->format('Y-m-d'),
+                'items' => $loan->items->map(function ($item) {
+                    return [
+                        'facility_name' => $item->facility->name,
+                        'quantity' => $item->quantity,
+                    ];
+                }),
+            ];
+        });
+        $facilities = Facility::where('quantity_available', '>', 0)
+            ->select('id', 'name', 'quantity_available')
+            ->orderBy('name')
+            ->get();
 
         return Inertia::render('Borrowings/Index', [
-            'borrowings' => $borrowings,
+            'loans' => $loans,
             'facilities' => $facilities,
         ]);
     }
@@ -50,23 +72,49 @@ class BorrowingController extends Controller
         return redirect()->back()->with('success', 'Peminjaman berhasil ditambahkan!');
     }
 
-    public function update(Borrowing $borrowing)
+    public function update( $id)
     {
-        if ($borrowing->status === 'dikembalikan') {
-            return redirect()->back()->with('info', 'Barang sudah dikembalikan sebelumnya.');
+        $loan = Loan::with('items.facility')->findOrFail($id);
+
+        if ($loan->returned_at) {
+            return back()->with('error', 'Barang sudah dikembalikan sebelumnya.');
         }
 
-        // Ubah status ke dikembalikan
-        $borrowing->update([
-            'status' => 'dikembalikan',
-            'return_date' => now(),
+        foreach ($loan->items as $item) {
+            $facility = $item->facility;
+            if ($facility) {
+                $facility->quantity_available += $item->quantity;
+                $facility->save();
+            }
+        }
+
+        $loan->update([
+                'returned_at' => now(),
         ]);
-
-        // Tambah kembali stok barang
-        foreach ($borrowing->facilities as $facility) {
-            $facility->increment('quantity_available', $facility->pivot->quantity);
-        }
+        $loan->save();
 
         return redirect()->back()->with('success', 'Barang berhasil dikembalikan.');
+    }
+
+    public function returnLoan($id)
+    {
+        $loan = Loan::with('items.facility')->findOrFail($id);
+
+        if ($loan->returned_at) {
+            return back()->with('error', 'Barang sudah dikembalikan sebelumnya.');
+        }
+
+        DB::transaction(function () use ($loan) {
+            foreach ($loan->items as $item) {
+                $facility = $item->facility;
+                $facility->increment('quantity_available', $item->quantity);
+            }
+
+            $loan->update([
+                'returned_at' => now(),
+            ]);
+        });
+
+        return redirect()->back()->with('success', 'Barang berhasil dikembalikan dan stok diperbarui.');
     }
 }

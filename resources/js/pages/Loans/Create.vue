@@ -3,7 +3,7 @@ import { ref } from 'vue'
 import { router, useForm, usePage } from '@inertiajs/vue3'
 import AppLayout from '@/Layouts/AppLayout.vue'
 
-const props = defineProps<{ loans: any[], facilities: any[] }>()
+const props = defineProps<{ borrowings: any[], facilities: any[] }>()
 const showModal = ref(false)
 
 const form = useForm({
@@ -31,10 +31,10 @@ function submit() {
 }
 
 function returnItem(id: number) {
-  router.post(`/loans/${id}/return`, {}, {
+  router.put(`/borrowings/${id}`, {}, {
     onSuccess: () => {
       // otomatis reload daftar
-      router.reload({ only: ['loans'] })
+      router.reload({ only: ['borrowings'] })
     }
   })
 }
@@ -51,69 +51,55 @@ function returnItem(id: number) {
         </button>
       </div>
 
-      <div class="bg-white rounded-lg shadow overflow-x-auto">
-        <table class="w-full border-collapse">
-          <thead class="bg-gray-100">
-            <tr>
-              <th class="px-4 py-2 text-left">Peminjam</th>
-              <th class="px-4 py-2 text-left">Tanggal Pinjam</th>
-              <th class="px-4 py-2 text-left">Jatuh Tempo</th>
-              <th class="px-4 py-2 text-left">Barang Dipinjam</th>
-              <th class="px-4 py-2 text-left">Status</th>
-              <th class="px-4 py-2 text-right">Aksi</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr
-              v-for="loan in props.loans"
-              :key="loan.id"
-              class="border-t hover:bg-gray-50"
-            >
-              <td class="px-4 py-2">{{ loan.borrower_name }}</td>
-              <td class="px-4 py-2">{{ loan.borrowed_at }}</td>
-              <td class="px-4 py-2">{{ new Date(loan.returned_at).toLocaleDateString() }}</td>
-              <td class="px-4 py-2">
-                <ul>
-                  <li
-                    v-for="item in loan.items"
-                    :key="item.facility_name"
-                    class="text-sm"
-                  >
-                    {{ item.facility_name }} — {{ item.quantity }} unit
-                  </li>
-                </ul>
-              </td>
-              <td class="px-4 py-2">
+      <table class="w-full bg-white shadow rounded">
+        <thead class="bg-gray-100">
+          <tr>
+            <th class="px-4 py-2">Peminjam</th>
+            <th class="px-4 py-2">Tanggal</th>
+            <th class="px-4 py-2">Barang</th>
+            <th class="px-4 py-2">Status</th>
+            <th class="px-4 py-2">Aksi</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="b in props.borrowings" :key="b.id" class="border-t">
+            <td class="px-4 py-2">{{ b.borrower_name }}</td>
+            <td class="px-4 py-2">{{ b.borrow_date }}</td>
+            <td class="px-4 py-2">
+              <ul>
+                <li v-for="f in b.facilities" :key="f.id">
+                  {{ f.name }} ({{ f.pivot.quantity }})
+                </li>
+              </ul>
+            </td>
+            <td class="px-4 py-2">
                 <span
-                  v-if="loan.returned_at"
-                  class="px-2 py-1 text-xs rounded bg-green-100 text-green-700"
+                    v-if="b.status === 'dipinjam'"
+                    class="text-yellow-600 font-medium"
                 >
-                  Sudah Dikembalikan
+                    Dipinjam
                 </span>
-                <span
-                  v-else
-                  class="px-2 py-1 text-xs rounded bg-yellow-100 text-yellow-700"
-                >
-                  Belum Dikembalikan
-                </span>
-              </td>
-              <td class="px-4 py-2 text-right">
-                <button
-                   v-if="!loan.returned_at"
-                  @click="returnItem(loan.id)"
-                  class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
-                >
-                  Kembalikan
-                </button>
 
-                <span v-else class="text-green-600 font-semibold">
-                    Sudah Dikembalikan
+                <span
+                    v-else
+                    class="text-green-600 font-medium"
+                >
+                    Dikembalikan
                 </span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+            </td>
+
+            <td class="px-4 py-2 text-center">
+            <button
+                v-if="b.status === 'dipinjam'"
+                @click="returnItem(b.id)"
+                class="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700"
+            >
+                Kembalikan
+            </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
 
       <!-- Modal -->
       <div v-if="showModal" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center">

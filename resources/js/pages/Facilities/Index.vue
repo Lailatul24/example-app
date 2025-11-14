@@ -79,6 +79,16 @@ function deleteFacility(id: number) {
     router.delete(`/facilities/${id}`)
   }
 }
+
+const selectedCategory = ref('')
+
+function exportData() {
+  const url = selectedCategory.value
+    ? `/facilities/export?category_id=${selectedCategory.value}`
+    : '/facilities/export'
+
+  window.location.href = url
+}
 </script>
 
 <template>
@@ -96,12 +106,26 @@ function deleteFacility(id: number) {
 
       <div class="flex justify-between items-center mb-6">
         <h1 class="text-2xl font-bold">Manajemen Fasilitas</h1>
-        <button
-          @click="openModal()"
-          class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-        >
-          + Tambah Fasilitas
-        </button>
+        <div class="flex space-x-2">
+            <select v-model="selectedCategory" class="border rounded p-2">
+            <option value="">Semua Kategori</option>
+            <option v-for="cat in props.categories" :key="cat.id" :value="cat.id">
+                {{ cat.name }}
+            </option>
+            </select>
+            <button
+            @click="exportData"
+            class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+            >
+            Export
+            </button>
+            <button
+            @click="openModal()"
+            class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+            >
+            + Tambah Fasilitas
+            </button>
+        </div>
       </div>
 
       <!-- Table -->

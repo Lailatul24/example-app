@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\FacilitiesExport;
 use App\Models\Category;
 use App\Models\Facility;
 use App\Models\Location;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Maatwebsite\Excel\Excel;
 
 class FacilityController extends Controller
 {
@@ -96,5 +98,20 @@ class FacilityController extends Controller
         $facility->delete();
 
         return redirect()->back()->with('success', 'Fasilitas berhasil dihapus!');
+    }
+
+    public function export(Request $request)
+    {
+        $categoryId = $request->get('category_id');
+        $categoryName = 'Semua_Kategori';
+
+        if ($categoryId) {
+            $category = \App\Models\Category::find($categoryId);
+            if ($category) {
+                $categoryName = $category->name;
+            }
+        }
+
+        return Excel::download(new FacilitiesExport($categoryId), "fasilitas_{$categoryName}.xlsx");
     }
 }
