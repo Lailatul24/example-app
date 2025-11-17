@@ -7,7 +7,8 @@ use App\Http\Controllers\LoanController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-Route::resource('facilities', FacilityController::class);
+Route::resource('facilities', FacilityController::class)
+    ->except(['show']);
 Route::get('/dashboard', fn () => Inertia::render('Dashboard'))->name('dashboard');
 Route::get('/facilities', [FacilityController::class, 'index'])->name('facilities.index');
 Route::post('/facilities', [FacilityController::class, 'store'])->name('facilities.store');

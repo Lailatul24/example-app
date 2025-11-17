@@ -40,7 +40,7 @@ class LoanController extends Controller
             $loan = Loan::create([
                 'borrower_name' => $data['borrower_name'],
                 'borrowed_at' => $data['borrowed_at'],
-                'return_due_at' => $data['return_due_at'] ?? null,
+                'return_due_at' => now()->addDays(3)
             ]);
 
             foreach ($data['items'] as $item) {

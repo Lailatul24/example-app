@@ -71,7 +71,7 @@ function returnItem(id: number) {
             >
               <td class="px-4 py-2">{{ loan.borrower_name }}</td>
               <td class="px-4 py-2">{{ loan.borrowed_at }}</td>
-              <td class="px-4 py-2">{{ new Date(loan.returned_at).toLocaleDateString() }}</td>
+              <td class="px-4 py-2">{{ loan.returned_at ? loan.returned_at  : '-'  }}</td>
               <td class="px-4 py-2">
                 <ul>
                   <li

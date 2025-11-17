@@ -3,7 +3,7 @@ import { ref, watch } from 'vue'
 import { useForm, usePage, router } from '@inertiajs/vue3'
 import AppLayout from '@/Layouts/AppLayout.vue'
 
-const props = defineProps<{ facilities: any[], categories: any[] }>()
+const props = defineProps<{ facilities: any[], categories: any[], exportUrl : any }>()
 
 const showModal = ref(false)
 const editMode = ref(false)
@@ -83,11 +83,7 @@ function deleteFacility(id: number) {
 const selectedCategory = ref('')
 
 function exportData() {
-  const url = selectedCategory.value
-    ? `/facilities/export?category_id=${selectedCategory.value}`
-    : '/facilities/export'
-
-  window.location.href = url
+ return `/facilities/export?category_id=${selectedCategory.value}`
 }
 </script>
 
@@ -113,12 +109,13 @@ function exportData() {
                 {{ cat.name }}
             </option>
             </select>
-            <button
-            @click="exportData"
-            class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+
+            <a
+             :href="`${exportUrl}?category_id=${selectedCategory}`"
+             class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
             >
-            Export
-            </button>
+             Export XLSX
+            </a>
             <button
             @click="openModal()"
             class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
@@ -133,7 +130,8 @@ function exportData() {
         <thead class="bg-gray-100 text-left">
           <tr>
             <th class="px-4 py-2">Nama</th>
-            <th class="px-4 py-2">qty</th>
+            <th class="px-4 py-2">Qty</th>
+            <th class="px-4 py-2">Qty available</th>
             <th class="px-4 py-2">Kondisi</th>
             <th class="px-4 py-2">Deskripsi</th>
             <th class="px-4 py-2 text-right">Aksi</th>
@@ -147,6 +145,7 @@ function exportData() {
           >
             <td class="px-4 py-2">{{ facility.name }}</td>
             <td class="px-4 py-2">{{ facility.quantity_total }}</td>
+            <td class="px-4 py-2">{{ facility.quantity_available }}</td>
             <td class="px-4 py-2">{{ facility.condition }}</td>
             <td class="px-4 py-2">{{ facility.description }}</td>
             <td class="px-4 py-2 text-right space-x-2">

@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers;
 
-use App\Exports\FacilitiesExport;
 use App\Models\Category;
 use App\Models\Facility;
-use App\Models\Location;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
-use Maatwebsite\Excel\Excel;
+use OpenSpout\Writer\XLSX\Writer;
+use OpenSpout\Common\Entity\Style\Style;
+use OpenSpout\Common\Entity\Row;
 
 class FacilityController extends Controller
 {
@@ -25,6 +25,7 @@ class FacilityController extends Controller
             // ambil semua kategori untuk dropdown
             'categories' => Category::orderBy('name')->get(),
             'flash' => session('success'),
+            'exportUrl' => route('facilities.export'),
         ]);
     }
 
@@ -103,15 +104,47 @@ class FacilityController extends Controller
     public function export(Request $request)
     {
         $categoryId = $request->get('category_id');
-        $categoryName = 'Semua_Kategori';
+
+        $query = Facility::query()->with('categories'); // <- kamu pakai many-to-many
 
         if ($categoryId) {
-            $category = \App\Models\Category::find($categoryId);
-            if ($category) {
-                $categoryName = $category->name;
-            }
+            $query->whereHas('categories', function ($q) use ($categoryId) {
+                $q->where('category_id', $categoryId);
+            });
         }
 
-        return Excel::download(new FacilitiesExport($categoryId), "fasilitas_{$categoryName}.xlsx");
+        $facilities = $query->get();
+
+        $filePath = storage_path('app/facilities_export.xlsx');
+
+        $writer = new Writer();
+        $writer->openToFile($filePath);
+
+        // header style
+        $headerStyle = (new Style())
+            ->setFontBold();
+
+        // header
+        $writer->addRow(Row::fromValues([
+            'Nama Fasilitas',
+            'Kategori',
+            'Qty Total',
+            'Qty Tersedia'
+        ], $headerStyle));
+
+        // data
+        foreach ($facilities as $f) {
+            $writer->addRow(Row::fromValues([
+                $f->name,
+                $f->categories->pluck('name')->join(', '), // many to many
+                $f->quantity_total,
+                $f->quantity_available
+            ]));
+        }
+
+        $writer->close();
+
+        return response()->download($filePath)->deleteFileAfterSend();
     }
+
 }
